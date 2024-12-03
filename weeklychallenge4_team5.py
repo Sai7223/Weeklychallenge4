@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1YJyLv1jUFwccsPd4odfv_YnuneW48CEU
 """
 
-pip install streamlit pandas plotly
+
 
 from google.colab import drive
 drive.mount('/content/drive')
