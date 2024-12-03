@@ -4,8 +4,6 @@
 
 """
 
-
-
 import os
 import zipfile
 import pandas as pd
@@ -33,8 +31,10 @@ def download_and_extract_zip(zip_url, extract_to='data/'):
 zip_url = 'https://github.com/Sai7223/weeklychallenge4/raw/main/Police_Bulk_Data_2014_20241027.zip'
 
 # Download and extract the zip file containing the dataset
-dataset_path = 'data/Police_Bulk_Data_2014_20241027.csv'
 download_and_extract_zip(zip_url)
+
+# Path to the dataset
+dataset_path = 'data/Police_Bulk_Data_2014_20241027.csv'
 
 # Check if the dataset exists
 if os.path.exists(dataset_path):
@@ -122,21 +122,27 @@ with col2:
 # Correlation heatmap function
 def create_correlation_heatmap(data):
     numeric_cols = ['offensereportingarea', 'offensepropertyattackcode', 'offensezip']
-    corr_matrix = data[numeric_cols].corr()
-    fig = go.Figure(data=go.Heatmap(
-        z=corr_matrix.values,
-        x=corr_matrix.columns,
-        y=corr_matrix.columns,
-        text=np.round(corr_matrix.values, 2),
-        texttemplate='%{text}%',
-        textfont={"size": 10},
-        hoverongaps=False,
-        colorscale='RdBu'
-    ))
-    fig.update_layout(
-        title='Correlation Heatmap of Numerical Features',
-        height=400
-    )
-    return fig
+    
+    # Ensure numeric columns exist in filtered data before calculating correlation matrix.
+    if all(col in data.columns for col in numeric_cols):
+        corr_matrix = data[numeric_cols].corr()
+        fig = go.Figure(data=go.Heatmap(
+            z=corr_matrix.values,
+            x=corr_matrix.columns,
+            y=corr_matrix.columns,
+            text=np.round(corr_matrix.values, 2),
+            texttemplate='%{text}%',
+            textfont={"size": 10},
+            hoverongaps=False,
+            colorscale='RdBu'
+        ))
+        fig.update_layout(
+            title='Correlation Heatmap of Numerical Features',
+            height=400
+        )
+        return fig
+    
+    return go.Figure()  # Return an empty figure if numeric columns are missing
 
 st.plotly_chart(create_correlation_heatmap(filtered_df), use_container_width=True)
+
