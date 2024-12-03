@@ -16,10 +16,7 @@ from io import BytesIO
 
 # Function to download and unzip the dataset from GitHub
 def download_and_extract_zip(zip_url, extract_to='data/'):
-    # Download the zip file from GitHub
     response = requests.get(zip_url)
-    
-    # Check if the response is valid
     if response.status_code == 200:
         with zipfile.ZipFile(BytesIO(response.content)) as zip_ref:
             zip_ref.extractall(extract_to)
@@ -36,14 +33,11 @@ download_and_extract_zip(zip_url)
 # Path to the dataset
 dataset_path = 'data/Police_Bulk_Data_2014_20241027.csv'
 
-# Check if the dataset exists
+# Check if the dataset exists and load only necessary columns
 if os.path.exists(dataset_path):
-    # Load the dataset into a pandas DataFrame
-    df = pd.read_csv(dataset_path)
-
-    # Ensure 'offensedate' is in datetime format
+    df = pd.read_csv(dataset_path, usecols=['offensedate', 'offensedescription', 'offensegender', 'offenserace'])
     df['offensedate'] = pd.to_datetime(df['offensedate'], errors='coerce')
-
+    
     # Display a preview of the data in Streamlit
     st.write("Dataset Preview:", df.head())
 else:
@@ -74,17 +68,8 @@ with col2:
         key='offense_type'
     )
 
-# Distribution variable filter (State or Race)
-distribution_variable = st.selectbox(
-    "Select Variable for Distribution Plot",
-    options=['offensestate', 'offenserace'],
-    key='distribution_variable'
-)
-
 # Filter the data based on the user's input
 filtered_df = df[(df['offensedate'].dt.date >= start_date) & (df['offensedate'].dt.date <= end_date)]
-
-# If offense types are selected, filter the data further
 if offense_type:
     filtered_df = filtered_df[filtered_df['offensedescription'].isin(offense_type)]
 
@@ -116,14 +101,12 @@ with col1:
     st.plotly_chart(create_gender_race_countplot(filtered_df), use_container_width=True)
 
 with col2:
-    # Additional visualizations can be added here
     st.write("Additional visualizations can be implemented.")
 
-# Correlation heatmap function
+# Correlation heatmap function (if numeric columns are necessary)
 def create_correlation_heatmap(data):
-    numeric_cols = ['offensereportingarea', 'offensepropertyattackcode', 'offensezip']
+    numeric_cols = ['some_numeric_column1', 'some_numeric_column2']  # Adjust based on actual numeric columns needed
     
-    # Ensure numeric columns exist in filtered data before calculating correlation matrix.
     if all(col in data.columns for col in numeric_cols):
         corr_matrix = data[numeric_cols].corr()
         fig = go.Figure(data=go.Heatmap(
@@ -136,13 +119,9 @@ def create_correlation_heatmap(data):
             hoverongaps=False,
             colorscale='RdBu'
         ))
-        fig.update_layout(
-            title='Correlation Heatmap of Numerical Features',
-            height=400
-        )
+        fig.update_layout(title='Correlation Heatmap of Numerical Features', height=400)
         return fig
     
     return go.Figure()  # Return an empty figure if numeric columns are missing
 
 st.plotly_chart(create_correlation_heatmap(filtered_df), use_container_width=True)
-
